@@ -14,7 +14,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm your ASK Trading & Projects assistant. I can help you learn about our services, company information, and how we can help transform your business. What would you like to know?",
+      text: "Hello! I'm your intelligent ASK Trading & Projects assistant. I can help you with detailed information about our services, provide business insights, and answer any questions about how we can transform your business. What would you like to know?",
       isBot: true,
       timestamp: new Date()
     }
@@ -40,7 +40,8 @@ const Chatbot = () => {
       type: "Private Company (Pty) Ltd",
       status: "Active & In Business",
       location: "3 Halifax, Johannesburg, Gauteng, 2191, South Africa",
-      email: "sepatoandrew@gmail.com",
+      email: "info@asktrading.co.za",
+      phone: "+27 83 303 5688",
       hours: "Monday-Friday: 8:00 AM - 6:00 PM, Saturday: 9:00 AM - 2:00 PM, Sunday: By appointment (SAST UTC+2)"
     },
     services: [
@@ -100,7 +101,80 @@ const Chatbot = () => {
     ]
   };
 
-  const generateResponse = (input: string): string => {
+  const generateAIResponse = async (input: string): Promise<string> => {
+    try {
+      const systemPrompt = `You are an intelligent assistant for ASK Trading and Projects (Pty) Ltd, a professional business and technology consulting company. Here's key information about the company:
+
+COMPANY INFO:
+- Name: ASK Trading and Projects (Pty) Ltd
+- Tagline: "You ASK and We provide"
+- Registration: 2025/423136/07
+- Established: May 2025
+- Location: 3 Halifax, Johannesburg, Gauteng, 2191, South Africa
+- Email: info@asktrading.co.za
+- Phone: +27 83 303 5688
+- Hours: Monday-Friday: 8:00 AM - 6:00 PM, Saturday: 9:00 AM - 2:00 PM, Sunday: By appointment (SAST UTC+2)
+
+SERVICES:
+1. Business Consulting - Strategic guidance, process optimization, market research
+2. Digital Transformation - Digital strategy, automation, cloud migration
+3. Technology Solutions - Custom software, web/mobile apps, system integration
+4. Data Analytics & Intelligence - BI dashboards, predictive analytics, reporting
+5. Project Management - End-to-end project delivery, risk management
+6. Training & Development - Technology training, leadership development
+
+METHODOLOGY:
+1. Discovery & Analysis - Understanding challenges and requirements
+2. Strategic Planning - Customized strategies and roadmaps
+3. Implementation - Precise execution with clear communication
+4. Optimization - Continuous monitoring and improvement
+
+VALUES:
+- Results-Driven Approach
+- Customer-Centric Focus
+- Innovation & Excellence
+
+You should be helpful, professional, and knowledgeable about business and technology topics. Always relate responses back to how ASK Trading and Projects can help solve business challenges. Keep responses concise but informative. If asked about pricing, mention that it's customized based on needs and suggest contacting for a consultation.`;
+
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer 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',
+          'Content-Type': 'application/json',
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'ASK Trading & Projects Chatbot'
+        },
+        body: JSON.stringify({
+          model: 'anthropic/claude-3.5-sonnet',
+          messages: [
+            {
+              role: 'system',
+              content: systemPrompt
+            },
+            {
+              role: 'user',
+              content: input
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0]?.message?.content || 'I apologize, but I encountered an issue processing your request. Please try again or contact us directly.';
+    } catch (error) {
+      console.error('OpenRouter API Error:', error);
+      // Fallback to local knowledge base
+      return generateFallbackResponse(input);
+    }
+  };
+
+  const generateFallbackResponse = (input: string): string => {
     const lowerInput = input.toLowerCase();
 
     // Greeting responses
@@ -118,70 +192,9 @@ const Chatbot = () => {
       return `We offer six core services: 1) Business Consulting - Strategic guidance and process optimization, 2) Digital Transformation - Modernizing operations and customer experience, 3) Technology Solutions - Custom software and system integration, 4) Data Analytics & Intelligence - Business intelligence and reporting, 5) Project Management - End-to-end project delivery, 6) Training & Development - Upskilling and technology adoption. Which service interests you most?`;
     }
 
-    // Specific service inquiries
-    if (lowerInput.includes('business consulting') || lowerInput.includes('consulting')) {
-      const service = companyKnowledge.services[0];
-      return `${service.description} Our consulting includes: ${service.features.slice(0, 3).join(', ')}, and more. We focus on delivering measurable business outcomes through proven methodologies.`;
-    }
-
-    if (lowerInput.includes('digital transformation') || lowerInput.includes('digital')) {
-      const service = companyKnowledge.services[1];
-      return `${service.description} We help with: ${service.features.slice(0, 3).join(', ')}, and other digital initiatives to position your business for future success.`;
-    }
-
-    if (lowerInput.includes('technology') || lowerInput.includes('software') || lowerInput.includes('development')) {
-      const service = companyKnowledge.services[2];
-      return `${service.description} Our technology services include: ${service.features.slice(0, 3).join(', ')}, plus ongoing support and maintenance.`;
-    }
-
-    if (lowerInput.includes('data') || lowerInput.includes('analytics') || lowerInput.includes('intelligence')) {
-      const service = companyKnowledge.services[3];
-      return `${service.description} We provide: ${service.features.slice(0, 3).join(', ')}, helping you make data-driven decisions.`;
-    }
-
-    if (lowerInput.includes('project management') || lowerInput.includes('project')) {
-      const service = companyKnowledge.services[4];
-      return `${service.description} Our project management covers: ${service.features.slice(0, 3).join(', ')}, ensuring successful delivery every time.`;
-    }
-
-    if (lowerInput.includes('training') || lowerInput.includes('development') || lowerInput.includes('education')) {
-      const service = companyKnowledge.services[5];
-      return `${service.description} We offer: ${service.features.slice(0, 3).join(', ')}, ensuring your team is equipped for success.`;
-    }
-
     // Contact information
     if (lowerInput.includes('contact') || lowerInput.includes('email') || lowerInput.includes('phone') || lowerInput.includes('reach')) {
-      return `You can reach us at ${companyKnowledge.company.email}. Our office is located at ${companyKnowledge.company.location}. Business hours: ${companyKnowledge.company.hours}. We respond to all inquiries within 24 hours!`;
-    }
-
-    // Location
-    if (lowerInput.includes('location') || lowerInput.includes('address') || lowerInput.includes('where')) {
-      return `We're located at ${companyKnowledge.company.location}. We serve clients throughout South Africa and internationally through our digital solutions.`;
-    }
-
-    // Methodology
-    if (lowerInput.includes('methodology') || lowerInput.includes('process') || lowerInput.includes('approach')) {
-      return `Our proven 4-step methodology ensures consistent delivery: 1) Discovery & Analysis - Understanding your needs, 2) Strategic Planning - Creating customized roadmaps, 3) Implementation - Executing with precision, 4) Optimization - Continuous improvement for sustained success.`;
-    }
-
-    // Pricing
-    if (lowerInput.includes('price') || lowerInput.includes('cost') || lowerInput.includes('fee')) {
-      return "Our pricing is customized based on your specific needs and project scope. We offer competitive rates and flexible engagement models. Contact us at sepatoandrew@gmail.com for a complimentary consultation and personalized quote.";
-    }
-
-    // Getting started
-    if (lowerInput.includes('start') || lowerInput.includes('begin') || lowerInput.includes('consultation')) {
-      return "Getting started is easy! Simply email us at sepatoandrew@gmail.com or use our contact form. We'll schedule a complimentary consultation to understand your needs and provide a customized solution proposal. We respond within 24 hours!";
-    }
-
-    // Why choose us
-    if (lowerInput.includes('why') || lowerInput.includes('choose') || lowerInput.includes('different')) {
-      return `Why choose ASK Trading & Projects? ${companyKnowledge.values.join('. ')}. We're a fresh, innovative company established in 2025, bringing cutting-edge solutions with personalized service.`;
-    }
-
-    // Industries
-    if (lowerInput.includes('industry') || lowerInput.includes('sector')) {
-      return "We serve clients across all industries including healthcare, finance, retail, manufacturing, education, and more. Our solutions are customized to meet the unique challenges and requirements of each sector.";
+      return `You can reach us at ${companyKnowledge.company.email} or call us at ${companyKnowledge.company.phone}. Our office is located at ${companyKnowledge.company.location}. Business hours: ${companyKnowledge.company.hours}. We respond to all inquiries within 24 hours!`;
     }
 
     // Default response
@@ -199,21 +212,38 @@ const Chatbot = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate typing delay
-    setTimeout(() => {
-      const botResponse: Message = {
-        id: messages.length + 2,
-        text: generateResponse(inputValue),
-        isBot: true,
-        timestamp: new Date()
-      };
+    try {
+      const response = await generateAIResponse(currentInput);
+      
+      // Simulate a more natural typing delay
+      setTimeout(() => {
+        const botResponse: Message = {
+          id: messages.length + 2,
+          text: response,
+          isBot: true,
+          timestamp: new Date()
+        };
 
-      setMessages(prev => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+        setMessages(prev => [...prev, botResponse]);
+        setIsTyping(false);
+      }, 1000 + Math.random() * 1500);
+    } catch (error) {
+      setTimeout(() => {
+        const errorResponse: Message = {
+          id: messages.length + 2,
+          text: "I apologize, but I'm experiencing some technical difficulties. Please try again in a moment or contact us directly at info@asktrading.co.za for immediate assistance.",
+          isBot: true,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, errorResponse]);
+        setIsTyping(false);
+      }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -251,8 +281,8 @@ const Chatbot = () => {
                 <Bot className="h-3 w-3 sm:h-5 sm:w-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm sm:text-base truncate">ASK Assistant</h3>
-                <p className="text-xs text-gray-300 hidden sm:block">Online • Ready to help</p>
+                <h3 className="font-semibold text-sm sm:text-base truncate">ASK AI Assistant</h3>
+                <p className="text-xs text-gray-300 hidden sm:block">Powered by AI • Ready to help</p>
               </div>
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
@@ -293,7 +323,7 @@ const Chatbot = () => {
                           ? 'bg-gray-100 text-gray-800' 
                           : 'bg-[#ff0000] text-white'
                       }`}>
-                        <p className="text-xs sm:text-sm leading-relaxed break-words">{message.text}</p>
+                        <p className="text-xs sm:text-sm leading-relaxed break-words whitespace-pre-wrap">{message.text}</p>
                         <p className={`text-xs mt-1 ${
                           message.isBot ? 'text-gray-500' : 'text-red-100'
                         }`}>
@@ -331,17 +361,21 @@ const Chatbot = () => {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Ask me about our services..."
-                    className="flex-1 px-2.5 py-2 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent text-xs sm:text-sm"
+                    disabled={isTyping}
+                    placeholder="Ask me anything about our services..."
+                    className="flex-1 px-2.5 py-2 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     onClick={handleSendMessage}
                     disabled={!inputValue.trim() || isTyping}
-                    className="bg-[#ff0000] hover:bg-[#c55555] disabled:bg-gray-300 text-white p-2 rounded-lg transition-colors flex-shrink-0"
+                    className="bg-[#ff0000] hover:bg-[#c55555] disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-colors flex-shrink-0"
                   >
                     <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Powered by AI • Responses may take a moment
+                </p>
               </div>
             </>
           )}
