@@ -134,20 +134,12 @@ VALUES:
 - Customer-Centric Focus
 - Innovation & Excellence
 
-You should be helpful, professional, and knowledgeable about business and technology topics. Always relate responses back to how ASK Trading and Projects can help solve business challenges. Keep responses concise but informative. If asked about pricing, mention that it's customized based on needs and suggest contacting for a consultation.`;
-
-      // Get API key from environment variable or use a placeholder
-      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || 'YOUR_OPENROUTER_API_KEY_HERE';
-      
-      if (apiKey === 'YOUR_OPENROUTER_API_KEY_HERE') {
-        console.warn('OpenRouter API key not configured. Using fallback responses.');
-        throw new Error('API key not configured');
-      }
+You should be helpful, professional, and knowledgeable about business and technology topics. For business-related questions, always try to relate responses back to how ASK Trading and Projects can help solve business challenges. For general questions not related to business, provide helpful and informative answers while maintaining a professional tone. Keep responses concise but informative. If asked about pricing, mention that it's customized based on needs and suggest contacting for a consultation.`;
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': 'Bearer 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',
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
           'X-Title': 'ASK Trading & Projects Chatbot'
@@ -517,7 +509,7 @@ What specific aspect would you like to explore? You can ask about any of our ser
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     disabled={isTyping}
-                    placeholder="Ask me anything about our services..."
+                    placeholder="Ask me anything..."
                     className="flex-1 px-2.5 py-2 sm:px-3 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
@@ -529,7 +521,7 @@ What specific aspect would you like to explore? You can ask about any of our ser
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2 text-center">
-                  Powered by AI • Responses may take a moment
+                  Powered by AI • Ask me anything!
                 </p>
               </div>
             </>
