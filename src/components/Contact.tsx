@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, FileText, Globe, ArrowRight, Send, User, MessageSquare, Building, Phone } from 'lucide-react';
+import { Mail, MapPin, FileText, Globe, ArrowRight, Send, User, MessageSquare, Building, Phone, CheckCircle, AlertCircle } from 'lucide-react';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +11,10 @@ const Contact = () => {
     message: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [submitMessage, setSubmitMessage] = useState('');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -19,22 +23,48 @@ const Contact = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = `Business Inquiry from ${formData.name} - ${formData.service}`;
-    const body = `
-Name: ${formData.name}
-Email: ${formData.email}
-Company: ${formData.company}
-Phone: ${formData.phone}
-Service Interest: ${formData.service}
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
 
-Message:
-${formData.message}
-    `;
-    
-    const mailtoLink = `mailto:sepatoandrew@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
+    try {
+      const response = await fetch('https://formspree.io/f/xeokrbny', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          company: formData.company,
+          phone: formData.phone,
+          service: formData.service,
+          message: formData.message,
+          _subject: `Business Inquiry from ${formData.name} - ${formData.service || 'General Inquiry'}`
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setSubmitMessage('Thank you for your message! We\'ll get back to you within 24 hours.');
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          phone: '',
+          service: '',
+          message: ''
+        });
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      setSubmitStatus('error');
+      setSubmitMessage('Sorry, there was an error sending your message. Please try again or contact us directly at info@asktrading.co.za');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,6 +87,28 @@ ${formData.message}
               <MessageSquare className="h-6 w-6 text-[#ff0000] mr-3" />
               Get Started Today
             </h3>
+
+            {/* Success/Error Messages */}
+            {submitStatus === 'success' && (
+              <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-start">
+                <CheckCircle className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-green-100 font-medium">Message Sent Successfully!</p>
+                  <p className="text-green-200 text-sm mt-1">{submitMessage}</p>
+                </div>
+              </div>
+            )}
+
+            {submitStatus === 'error' && (
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg flex items-start">
+                <AlertCircle className="h-5 w-5 text-red-400 mr-3 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-red-100 font-medium">Error Sending Message</p>
+                  <p className="text-red-200 text-sm mt-1">{submitMessage}</p>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
@@ -70,7 +122,8 @@ ${formData.message}
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Your full name"
                   />
                 </div>
@@ -85,7 +138,8 @@ ${formData.message}
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="your.email@company.com"
                   />
                 </div>
@@ -102,7 +156,8 @@ ${formData.message}
                     name="company"
                     value={formData.company}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Your company name"
                   />
                 </div>
@@ -116,7 +171,8 @@ ${formData.message}
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="+27 XX XXX XXXX"
                   />
                 </div>
@@ -131,7 +187,8 @@ ${formData.message}
                   name="service"
                   value={formData.service}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="" className="text-gray-800">Select a service...</option>
                   <option value="Business Consulting" className="text-gray-800">Business Consulting</option>
@@ -155,17 +212,28 @@ ${formData.message}
                   rows={4}
                   value={formData.message}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent resize-none"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ff0000] focus:border-transparent resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="Tell us about your project, challenges, or goals. The more details you provide, the better we can assist you."
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#ff0000] hover:bg-[#c55555] text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center transition-colors duration-200"
+                disabled={isSubmitting}
+                className="w-full bg-[#ff0000] hover:bg-[#c55555] disabled:bg-gray-500 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center transition-colors duration-200"
               >
-                Send Message
-                <Send className="ml-2 h-5 w-5" />
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                    Sending Message...
+                  </>
+                ) : (
+                  <>
+                    Send Message
+                    <Send className="ml-2 h-5 w-5" />
+                  </>
+                )}
               </button>
             </form>
           </div>
