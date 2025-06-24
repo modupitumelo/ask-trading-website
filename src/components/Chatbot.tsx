@@ -136,10 +136,18 @@ VALUES:
 
 You should be helpful, professional, and knowledgeable about business and technology topics. Always relate responses back to how ASK Trading and Projects can help solve business challenges. Keep responses concise but informative. If asked about pricing, mention that it's customized based on needs and suggest contacting for a consultation.`;
 
+      // Get API key from environment variable or use a placeholder
+      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY || 'YOUR_OPENROUTER_API_KEY_HERE';
+      
+      if (apiKey === 'YOUR_OPENROUTER_API_KEY_HERE') {
+        console.warn('OpenRouter API key not configured. Using fallback responses.');
+        throw new Error('API key not configured');
+      }
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': window.location.origin,
           'X-Title': 'ASK Trading & Projects Chatbot'
@@ -162,6 +170,8 @@ You should be helpful, professional, and knowledgeable about business and techno
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`OpenRouter API Error: ${response.status} - ${errorText}`);
         throw new Error(`API request failed: ${response.status}`);
       }
 
@@ -169,36 +179,181 @@ You should be helpful, professional, and knowledgeable about business and techno
       return data.choices[0]?.message?.content || 'I apologize, but I encountered an issue processing your request. Please try again or contact us directly.';
     } catch (error) {
       console.error('OpenRouter API Error:', error);
-      // Fallback to local knowledge base
-      return generateFallbackResponse(input);
+      // Fallback to enhanced local knowledge base
+      return generateEnhancedResponse(input);
     }
   };
 
-  const generateFallbackResponse = (input: string): string => {
+  const generateEnhancedResponse = (input: string): string => {
     const lowerInput = input.toLowerCase();
 
     // Greeting responses
-    if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
-      return "Hello! Welcome to ASK Trading & Projects. I'm here to help you learn about our professional business and technology solutions. What specific information can I provide for you today?";
+    if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey') || lowerInput.includes('good morning') || lowerInput.includes('good afternoon')) {
+      return "Hello! Welcome to ASK Trading & Projects. I'm here to help you discover how our professional business and technology solutions can transform your organization. Whether you're looking to optimize operations, implement digital transformation, or develop custom technology solutions, I can provide detailed information about our services. What specific challenge or opportunity would you like to discuss?";
     }
 
     // Company information
-    if (lowerInput.includes('company') || lowerInput.includes('about') || lowerInput.includes('who are you')) {
-      return `ASK Trading and Projects (Pty) Ltd is a dynamic, newly established private company committed to delivering exceptional business and technology solutions. We were founded in May 2025 with the mission "You ASK and We provide." Our registration number is ${companyKnowledge.company.registration}, and we're based in Johannesburg, Gauteng, South Africa.`;
+    if (lowerInput.includes('company') || lowerInput.includes('about') || lowerInput.includes('who are you') || lowerInput.includes('tell me about')) {
+      return `ASK Trading and Projects (Pty) Ltd is a dynamic, newly established private company founded in May 2025 with the mission "You ASK and We provide." We're a full-service business and technology consulting firm based in Johannesburg, Gauteng, South Africa (Registration: ${companyKnowledge.company.registration}). Our team specializes in delivering comprehensive solutions that drive measurable business outcomes through strategic consulting, digital transformation, and cutting-edge technology implementation. We pride ourselves on our customer-centric approach and commitment to innovation and excellence.`;
     }
 
-    // Services
-    if (lowerInput.includes('service') || lowerInput.includes('what do you do') || lowerInput.includes('offer')) {
-      return `We offer six core services: 1) Business Consulting - Strategic guidance and process optimization, 2) Digital Transformation - Modernizing operations and customer experience, 3) Technology Solutions - Custom software and system integration, 4) Data Analytics & Intelligence - Business intelligence and reporting, 5) Project Management - End-to-end project delivery, 6) Training & Development - Upskilling and technology adoption. Which service interests you most?`;
+    // Services - General
+    if (lowerInput.includes('service') || lowerInput.includes('what do you do') || lowerInput.includes('offer') || lowerInput.includes('help')) {
+      return `We offer six comprehensive service areas designed to transform your business:
+
+🔹 **Business Consulting** - Strategic guidance, process optimization, and market intelligence
+🔹 **Digital Transformation** - Modernizing operations and enhancing customer experience  
+🔹 **Technology Solutions** - Custom software development and system integration
+🔹 **Data Analytics & Intelligence** - Business intelligence dashboards and predictive analytics
+🔹 **Project Management** - End-to-end project delivery with proven methodologies
+🔹 **Training & Development** - Upskilling teams for technology adoption and leadership
+
+Each service is tailored to your specific needs and delivered through our proven 4-step methodology. Which area would you like to explore in more detail?`;
+    }
+
+    // Business Consulting
+    if (lowerInput.includes('business consulting') || lowerInput.includes('consulting') || lowerInput.includes('strategy') || lowerInput.includes('optimization')) {
+      return `Our Business Consulting services provide strategic guidance to optimize your operations and accelerate growth. We offer:
+
+• **Business Process Optimization** - Streamline workflows and eliminate inefficiencies
+• **Strategic Planning & Analysis** - Data-driven roadmaps for sustainable growth
+• **Market Research & Intelligence** - Competitive insights and market positioning
+• **Performance Management Systems** - KPI frameworks and measurement tools
+• **Risk Assessment & Mitigation** - Identify and address potential business risks
+• **Compliance & Regulatory Support** - Ensure adherence to industry standards
+
+Our consultants work closely with your team to understand your unique challenges and deliver customized solutions that drive measurable results. Would you like to discuss how we can help optimize your specific business processes?`;
+    }
+
+    // Digital Transformation
+    if (lowerInput.includes('digital transformation') || lowerInput.includes('digital') || lowerInput.includes('automation') || lowerInput.includes('modernize')) {
+      return `Our Digital Transformation services help modernize your business operations and position you for future success:
+
+• **Digital Strategy Development** - Comprehensive roadmaps for digital adoption
+• **Technology Implementation** - Seamless integration of modern solutions
+• **Process Automation Solutions** - Reduce manual work and increase efficiency
+• **Cloud Migration Services** - Secure, scalable cloud infrastructure
+• **Digital Marketing Solutions** - Enhance your online presence and reach
+• **E-commerce Development** - Build robust online sales platforms
+
+We understand that digital transformation is not just about technology—it's about reimagining how your business operates. Our approach ensures smooth transitions with minimal disruption to your current operations. What aspects of digital transformation are most important for your business?`;
+    }
+
+    // Technology Solutions
+    if (lowerInput.includes('technology') || lowerInput.includes('software') || lowerInput.includes('development') || lowerInput.includes('app') || lowerInput.includes('system')) {
+      return `Our Technology Solutions deliver cutting-edge custom development and system integration:
+
+• **Custom Software Development** - Tailored applications for your unique requirements
+• **Web & Mobile Applications** - Responsive, user-friendly digital experiences
+• **Database Design & Management** - Secure, scalable data architecture
+• **System Integration Services** - Connect disparate systems seamlessly
+• **API Development & Integration** - Enable smooth data flow between platforms
+• **Technical Support & Maintenance** - Ongoing support to ensure optimal performance
+
+Whether you need a simple web application or a complex enterprise system, our experienced development team uses modern technologies and best practices to deliver solutions that scale with your business. What type of technology solution are you considering?`;
+    }
+
+    // Data Analytics
+    if (lowerInput.includes('data') || lowerInput.includes('analytics') || lowerInput.includes('intelligence') || lowerInput.includes('reporting') || lowerInput.includes('dashboard')) {
+      return `Our Data Analytics & Intelligence services transform your data into actionable business insights:
+
+• **Business Intelligence Dashboards** - Real-time visibility into key metrics
+• **Predictive Analytics Solutions** - Forecast trends and anticipate opportunities
+• **Data Visualization & Reporting** - Clear, compelling data presentations
+• **Performance Metrics & KPIs** - Track what matters most to your business
+• **Custom Reporting Solutions** - Automated reports tailored to your needs
+• **Data Mining & Analysis** - Uncover hidden patterns and insights
+
+We help you harness the power of your data to make informed decisions, identify new opportunities, and gain competitive advantages. Our analytics solutions are designed to be user-friendly and provide actionable insights that drive business growth. What data challenges is your organization currently facing?`;
+    }
+
+    // Project Management
+    if (lowerInput.includes('project management') || lowerInput.includes('project') || lowerInput.includes('delivery') || lowerInput.includes('implementation')) {
+      return `Our Project Management services ensure successful delivery of complex initiatives:
+
+• **Project Planning & Execution** - Detailed roadmaps with clear milestones
+• **Resource Management & Allocation** - Optimize team productivity and efficiency
+• **Risk Management & Mitigation** - Proactive identification and resolution
+• **Quality Assurance & Control** - Maintain high standards throughout delivery
+• **Stakeholder Communication** - Keep everyone informed and aligned
+• **Change Management Support** - Smooth transitions and user adoption
+
+We use proven methodologies and industry best practices to deliver projects on time, within budget, and exceeding quality expectations. Our experienced project managers work as an extension of your team to ensure success. Do you have any specific projects or initiatives you'd like to discuss?`;
+    }
+
+    // Training & Development
+    if (lowerInput.includes('training') || lowerInput.includes('development') || lowerInput.includes('education') || lowerInput.includes('learning') || lowerInput.includes('skills')) {
+      return `Our Training & Development programs ensure successful adoption of new technologies and processes:
+
+• **Technology Training Programs** - Hands-on learning for new systems and tools
+• **Process & Workflow Training** - Optimize team efficiency and productivity
+• **Leadership Development** - Build strong management capabilities
+• **Custom Workshop Design** - Tailored learning experiences for your team
+• **Ongoing Support & Mentoring** - Continuous guidance and assistance
+• **Certification Programs** - Industry-recognized credentials and qualifications
+
+We believe that successful technology implementation requires proper training and support. Our training programs are designed to be engaging, practical, and immediately applicable to your business needs. What training needs does your organization currently have?`;
+    }
+
+    // Pricing
+    if (lowerInput.includes('price') || lowerInput.includes('cost') || lowerInput.includes('pricing') || lowerInput.includes('budget') || lowerInput.includes('quote')) {
+      return `Our pricing is customized based on your specific needs, project scope, and requirements. We believe in providing transparent, value-based pricing that delivers measurable ROI for your investment.
+
+We offer flexible engagement models:
+• **Project-based pricing** - Fixed cost for defined deliverables
+• **Retainer agreements** - Ongoing support and services
+• **Hourly consulting** - Flexible support as needed
+
+To provide you with an accurate quote, we'd need to understand your specific requirements and objectives. I'd recommend scheduling a complimentary consultation where we can discuss your needs in detail and provide a customized proposal.
+
+Contact us at ${companyKnowledge.company.email} or ${companyKnowledge.company.phone} to arrange your consultation. Would you like me to provide more details about any specific service area?`;
     }
 
     // Contact information
-    if (lowerInput.includes('contact') || lowerInput.includes('email') || lowerInput.includes('phone') || lowerInput.includes('reach')) {
-      return `You can reach us at ${companyKnowledge.company.email} or call us at ${companyKnowledge.company.phone}. Our office is located at ${companyKnowledge.company.location}. Business hours: ${companyKnowledge.company.hours}. We respond to all inquiries within 24 hours!`;
+    if (lowerInput.includes('contact') || lowerInput.includes('email') || lowerInput.includes('phone') || lowerInput.includes('reach') || lowerInput.includes('call') || lowerInput.includes('address')) {
+      return `Here's how you can reach ASK Trading & Projects:
+
+📧 **Email:** ${companyKnowledge.company.email}
+📞 **Phone:** ${companyKnowledge.company.phone}
+📍 **Address:** ${companyKnowledge.company.location}
+
+🕒 **Business Hours:**
+${companyKnowledge.company.hours}
+
+We respond to all inquiries within 24 hours and offer complimentary initial consultations to discuss your specific needs. Whether you prefer email, phone, or an in-person meeting, we're here to help you explore how our services can benefit your business.
+
+Would you like to schedule a consultation or do you have any other questions about our services?`;
     }
 
-    // Default response
-    return "I'd be happy to help you learn more about ASK Trading & Projects! You can ask me about our services, company information, methodology, contact details, or how we can help your business. What specific information would you like to know?";
+    // Methodology
+    if (lowerInput.includes('methodology') || lowerInput.includes('process') || lowerInput.includes('approach') || lowerInput.includes('how do you work')) {
+      return `Our proven 4-step methodology ensures successful project delivery and measurable results:
+
+**1. Discovery & Analysis**
+We begin by thoroughly understanding your unique challenges, goals, and requirements through comprehensive analysis and stakeholder engagement.
+
+**2. Strategic Planning**
+We develop customized strategies and detailed roadmaps that align with your business objectives and deliver measurable results.
+
+**3. Implementation**
+We execute solutions with precision, maintaining clear communication and delivering key milestones according to schedule.
+
+**4. Optimization**
+We continuously monitor, measure, and optimize solutions to ensure sustained success and maximum return on investment.
+
+This methodology is applied across all our service areas and ensures that every project delivers real business value. Would you like to know more about how this approach would apply to your specific situation?`;
+    }
+
+    // Default enhanced response
+    return `I'm here to help you discover how ASK Trading & Projects can transform your business! I can provide detailed information about:
+
+🔹 **Our Services** - Business consulting, digital transformation, technology solutions, data analytics, project management, and training
+🔹 **Company Information** - Our background, mission, and approach
+🔹 **Methodology** - Our proven 4-step process for successful delivery
+🔹 **Contact Details** - How to reach us for consultations
+🔹 **Specific Solutions** - How we can address your particular business challenges
+
+What specific aspect would you like to explore? You can ask about any of our services, our approach to solving business challenges, or how we might help with your particular situation.`;
   };
 
   const handleSendMessage = async () => {
