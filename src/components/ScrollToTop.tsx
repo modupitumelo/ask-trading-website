@@ -29,7 +29,7 @@ const ScrollToTop = () => {
       {isVisible && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 bg-[#ff0000] hover:bg-[#c55555] text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+          className="fixed bottom-8 left-8 z-50 bg-[#ff0000] hover:bg-[#c55555] text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
           aria-label="Scroll to top"
         >
           <ChevronUp className="h-6 w-6 group-hover:animate-bounce" />
